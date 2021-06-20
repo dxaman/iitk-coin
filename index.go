@@ -11,6 +11,11 @@ func main() {
 	http.HandleFunc("/login", Login)
 	http.HandleFunc("/home", Home)
 	http.HandleFunc("/logout", Logout)
+	http.HandleFunc("/award", Award)
+	http.HandleFunc("/transfer", Transfer)
+	http.HandleFunc("/balance", Balance)
+
+
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

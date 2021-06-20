@@ -3,9 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
-
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -35,13 +33,14 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+
 	if !checkUser(credentials.Rollno) {
 		database, _ := sql.Open("sqlite3", "./data_dxaman_0.db")
-		statement, _ := database.Prepare("CREATE TABLE IF NOT EXISTS student (id INTEGER PRIMARY KEY, rollno TEXT, fullname TEXT, password TEXT)")
+		statement, _ := database.Prepare("CREATE TABLE IF NOT EXISTS college (id INTEGER PRIMARY KEY, rollno TEXT, fullname TEXT, password TEXT,coins INT)")
 		statement.Exec()
-		statement, err = database.Prepare("INSERT INTO student (rollno, fullname, password)  VALUES (?,?,?)")
+		statement, err = database.Prepare("INSERT INTO college (rollno, fullname, password, coins)  VALUES (?,?,?,?)")
 		checkErr(err)
-		statement.Exec(credentials.Rollno, credentials.Fullname, hashAndSalt([]byte(credentials.Password)))
+		statement.Exec(credentials.Rollno, credentials.Fullname, hashAndSalt([]byte(credentials.Password)),0)
 		w.Write([]byte("User Successfully Registered\n"))
 	} else{
 		w.WriteHeader(http.StatusUnauthorized)
@@ -51,15 +50,15 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	//Un-comment the below code only if want to see all the entries in the database with their hashed password.
 
 	/*database, _ := sql.Open("sqlite3", "./data_dxaman_0.db")
-	statement, err := database.Prepare("CREATE TABLE IF NOT EXISTS student (id INTEGER PRIMARY KEY, rollno TEXT, fullname TEXT, password TEXT)")
+	statement, err := database.Prepare("CREATE TABLE IF NOT EXISTS college (id INTEGER PRIMARY KEY, rollno TEXT, fullname TEXT, password TEXT,coins INT)")
 	checkErr(err)
 	statement.Exec()
-	var id int
+	var id,coins int
 	var rollno, fullname,password string
-	rows, _ := database.Query("SELECT id, rollno, fullname,password FROM student")
+	rows, _ := database.Query("SELECT id, rollno, fullname,password,coins FROM college")
 	for rows.Next(){
-		rows.Scan(&id, &rollno, &fullname,&password)
-		fmt.Println(strconv.Itoa(id) + ": "+ fullname + " - "+ rollno+" - "+ password)
+		rows.Scan(&id, &rollno, &fullname,&password,&coins)
+		fmt.Println(strconv.Itoa(id) + ": "+ fullname + " - "+ rollno+" - "+ password+" -" +strconv.Itoa(coins))
 	}
 	defer database.Close()*/
 
@@ -80,7 +79,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Generate token and set cookies
-	expirationTime := time.Now().Add(time.Minute * 5)
+	expirationTime := time.Now().Add(time.Minute * 20)
 
 	claims := &Claims{
 		Rollno: credentials.Rollno,
@@ -117,7 +116,9 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func Home(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("token")
+	checkAuth(w,r)
+
+/*	cookie, err := r.Cookie("token")
 	if err != nil {
 		if err == http.ErrNoCookie {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -153,6 +154,6 @@ func Home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(fmt.Sprintf("Hello, %s", claims.Rollno)))
+	w.Write([]byte(fmt.Sprintf("Hello, %s", claims.Rollno)))*/
 
 }
