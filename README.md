@@ -1,5 +1,5 @@
 # IITK COIN
-### NOTE: Locking is not working as expected, I was having problem implementing it because of the structure I chose for the code which I must must be changed a bit for implementing this part correctly. There may be some unwanted outputs if tested rigorously. It will soon be updated to work as expected. Most Probably by tonight.
+### NOTE: Locking is not working as expected, I was having problem implementing it because of the structure I chose for the code which  be changed a bit for implementing this part correctly. There may be some unwanted outputs if tested rigorously. It will soon be updated to work as expected. Most Probably by tonight.
 General Instructions on how to run the code:
 - ## Endpoints:
    
