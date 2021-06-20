@@ -44,7 +44,7 @@ General Instructions on how to run the code:
 	 "coins":50 \
     } 
    
-   ###NOTE: Transaction Endpoints are not public, one has to signup and login to access these endpoints. 
+   ### NOTE: Transaction Endpoints are not public, one has to signup and login to access these endpoints. 
   
 ## Structure:
   - ```index.go``` contains the func ```main``` and call all the endpoints.
