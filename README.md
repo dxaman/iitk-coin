@@ -6,9 +6,9 @@ General Instructions on how to run the code:
     ```/signup``` allows user to register new user into the database\
     ```/login```  authenticate users and generate jwt token for logging in\
     ```/home``` only authenticated users can view this page\
-    ```/logout``` logs user out by deleting the existing cookie
-    ```/balance``` allows user to check his/her wallet balance
-     ```/award``` adds coin to the recipient's account
+    ```/logout``` logs user out by deleting the existing cookie\
+    ```/balance``` allows user to check his/her wallet balance\
+     ```/award``` adds coin to the recipient's account\
      ```/transfer``` transfer coins from logged in user to the recipient's account
     
  ***   
