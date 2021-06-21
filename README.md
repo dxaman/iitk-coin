@@ -9,7 +9,8 @@ General Instructions on how to run the code:
     ```/logout``` logs user out by deleting the existing cookie\
     ```/balance``` allows user to check his/her wallet balance\
      ```/award``` adds coin to the recipient's account\
-     ```/transfer``` transfer coins from logged in user to the recipient's account
+     ```/transfer``` transfer coins from logged in user to the recipient's account\
+     ```/database``` is a temporary public endpoint to check the working of the code. It prints all the information written in the database.
     
  ***   
 ## Testing:
