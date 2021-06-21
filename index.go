@@ -14,6 +14,7 @@ func main() {
 	http.HandleFunc("/award", Award)
 	http.HandleFunc("/transfer", Transfer)
 	http.HandleFunc("/balance", Balance)
+	http.HandleFunc("/database", fetchDatabase)
 
 
 

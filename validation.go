@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	//"context"
 	"database/sql"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	_ "github.com/mattn/go-sqlite3"
+	"log"
+	"strconv"
 	"sync"
 	"time"
 
@@ -54,16 +57,16 @@ func checkPassword(roll string, pass string) bool{
 	return flag
 }
 
-func checkAuth(w http.ResponseWriter, r *http.Request) bool{
+func checkAuth(w http.ResponseWriter, r *http.Request) string{
 	cookie, err := r.Cookie("token")
 	if err != nil {
 		if err == http.ErrNoCookie {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("Unauthorized\n"))
-			return false
+			return "false"
 		}
 		w.WriteHeader(http.StatusBadRequest)
-		return false
+		return "false"
 	}
 
 	tokenStr := cookie.Value
@@ -79,35 +82,79 @@ func checkAuth(w http.ResponseWriter, r *http.Request) bool{
 		if err == jwt.ErrSignatureInvalid {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("Unauthorized\n"))
-			return false
+			return "false"
 		}
 		w.WriteHeader(http.StatusBadRequest)
-		return false
+		return "false"
 	}
 
 	if !tkn.Valid {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Unauthorized\n"))
-		return false
+		return "false"
 	}
-	w.Write([]byte(fmt.Sprintf("Hello, %s", claims.Rollno)))
-	return true
+
+	return claims.Rollno
 
 }
-func waitList(query string,roll string, amt int , tx *sql.Tx,wg *sync.WaitGroup)int{
+func global(query string,cRollno string,tTo string, tCoins int,w http.ResponseWriter){
 	mutex.Lock()
+	database, _ := sql.Open("sqlite3", "./data_dxaman_0.db")
+	ctx := context.Background()
+	tx, err := database.BeginTx(ctx, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if query=="transfer"{
+		if waitList("fetch",cRollno,0,tx)>=tCoins && tTo!=cRollno{
+			if waitList("update",tTo, tCoins,tx) ==1 && waitList("update",cRollno,-tCoins,tx)==1{
+				//sleep()
+				err = tx.Commit()
+				if err != nil {
+					log.Fatal(err)
+				}
+				var ownerBal = waitList("fetch",cRollno,0,tx)
+				w.Write([]byte(fmt.Sprintf("You have %s coins left!\n", strconv.Itoa(ownerBal))))
+				mutex.Unlock()
+				return
+			}
+			w.Write([]byte(fmt.Sprintf("Unexpected Error Occured")))
+			tx.Rollback()
+			mutex.Unlock()
+			return
+		}
+		w.Write([]byte(fmt.Sprintf("Insufficient Balance!")))
+		tx.Rollback()
+		mutex.Unlock()
+		return
+	}
+	if query=="award"{
+		if waitList("update",tTo, tCoins,tx) ==1{
+			err = tx.Commit()
+			if err != nil {
+				log.Fatal(err)
+			}
+			w.Write([]byte(fmt.Sprintf("Awardee has been awarded %s coins!\n", strconv.Itoa(tCoins))))
+			mutex.Unlock()
+			return
+		}
+		tx.Rollback()
+		w.Write([]byte(fmt.Sprintf("Unexpected Error Occured")))
+		mutex.Unlock()
+		return
+
+	}
+	mutex.Unlock()
+	return
+}
+func waitList(query string,roll string, amt int , tx *sql.Tx)int{
 	if query=="fetch"{
 		var val = fetchBal(roll)
-		mutex.Unlock()
-		wg.Done()
 		return val
 	}
 	if query=="update"{
 		var availCoins = fetchBal(roll)
-		//sleep()
 		var flag = updateBal(roll,amt,availCoins,tx)
-		mutex.Unlock()
-		wg.Done()
 		return flag
 	}
 	return -1
@@ -132,7 +179,6 @@ func fetchBal(roll string) int {
 }
 func updateBal(roll string,amt int,availCoins int,tx *sql.Tx) int{
 	var flag = -1
-	//var availCoins = fetchBal(roll)
 	if availCoins != -1{
 		statement, err := tx.Prepare("UPDATE college SET coins = ?  WHERE rollno = ?")
 		if err != nil {
