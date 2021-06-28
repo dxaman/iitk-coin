@@ -35,14 +35,13 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	if !checkUser(credentials.Rollno) {
 		database, _ := sql.Open("sqlite3", "./data_dxaman_0.db")
-		statement, _ := database.Prepare("CREATE TABLE IF NOT EXISTS college (id INTEGER PRIMARY KEY, rollno TEXT, fullname TEXT, password TEXT,coins INT)")
+		statement, _ := database.Prepare("CREATE TABLE IF NOT EXISTS college (id INTEGER PRIMARY KEY, rollno TEXT, fullname TEXT, password TEXT,coins INT, events INT)")
 		statement.Exec()
-		statement, err = database.Prepare("INSERT INTO college (rollno, fullname, password, coins)  VALUES (?,?,?,?)")
+		statement, err = database.Prepare("INSERT INTO college (rollno, fullname, password, coins,events)  VALUES (?,?,?,?,?)")
 		checkErr(err)
-		statement.Exec(credentials.Rollno, credentials.Fullname, hashAndSalt([]byte(credentials.Password)),0)
+		statement.Exec(credentials.Rollno, credentials.Fullname, hashAndSalt([]byte(credentials.Password)),0,0)
 		w.Write([]byte("User Successfully Registered\n"))
 	} else{
 		w.WriteHeader(http.StatusUnauthorized)
