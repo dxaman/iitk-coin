@@ -127,13 +127,22 @@ func global(query string,cRollno string,tTo string, tCoins int,w http.ResponseWr
 				if err != nil {
 					log.Fatal(err)
 				}
-				w.Write([]byte(fmt.Sprintf("You have redeemed %s coins!\n", strconv.Itoa(tCoins))))
+				w.Write([]byte(fmt.Sprintf("Redeem Request Approved!")))
 				mutex.Unlock()
 				return 1
+			}else{
+				return -1
 			}
 		}else{
 			w.Write([]byte(fmt.Sprintf("Not Enough Balance!")))
+			return -1
 		}
+	}
+	var reqID=fetchReqID()
+	if reqID == -1{
+		tx.Rollback()
+		mutex.Unlock()
+		return -1
 	}
 	if waitList("fetch",tTo,0,tx)+tCoins>cap{
 		w.Write([]byte(fmt.Sprintf("Exceeding Cap Limit!")))
@@ -153,7 +162,7 @@ func global(query string,cRollno string,tTo string, tCoins int,w http.ResponseWr
 				var ownerBal = waitList("fetch",cRollno,0,tx)
 				w.Write([]byte(fmt.Sprintf("You have %s coins left!\n", strconv.Itoa(ownerBal))))
 				mutex.Unlock()
-				return 1
+				return reqID
 			}
 			w.Write([]byte(fmt.Sprintf("Unexpected Error Occured")))
 			tx.Rollback()
@@ -174,7 +183,7 @@ func global(query string,cRollno string,tTo string, tCoins int,w http.ResponseWr
 			}
 			w.Write([]byte(fmt.Sprintf("Awardee has been awarded %s coins!\n", strconv.Itoa(tCoins))))
 			mutex.Unlock()
-			return 1
+			return reqID
 		}
 		tx.Rollback()
 		w.Write([]byte(fmt.Sprintf("Unexpected Error Occured")))
@@ -182,9 +191,9 @@ func global(query string,cRollno string,tTo string, tCoins int,w http.ResponseWr
 		return -1
 
 	}
-
+	tx.Rollback()
 	mutex.Unlock()
-	return -1
+	return reqID
 }
 func waitList(query string,roll string, amt int , tx *sql.Tx)int{
 	if query=="fetch"{
@@ -257,39 +266,7 @@ func updateBal(roll string,amt int,availCoins int,tx *sql.Tx) int{
 	}
 	return flag
 }
-func fetchWal() int {
-	var flag = -1
-	database, _ := sql.Open("sqlite3", "./data_dxaman_0.db")
-	rows, _ := database.Query("SELECT rollno,coins FROM admins")
-	var rollno string
-	var coins int
-	for rows.Next() {
-		err := rows.Scan(&rollno,&coins)
-		if err != nil {
-			return -1
-		}
-		if rollno  == "wallet" {
-			flag = coins
-		}
-	}
-	return flag
-}
-func updateWal(amt int,tx *sql.Tx) int{
-	var flag = -1
-	var availWal = fetchWal()
-	if availWal != -1{
-		statement, err := tx.Prepare("UPDATE admins SET coins = ?  WHERE rollno = ?")
-		if err != nil {
-			return -1
-		}
-		_,err = statement.Exec(availWal+amt, "wallet")
-		if err != nil {
-			return -1
-		}
-		flag =  1
-	}
-	return flag
-}
+
 func eveInc(roll string){
 	var curEve = fetchEve(roll)
 	database, _ := sql.Open("sqlite3", "./data_dxaman_0.db")

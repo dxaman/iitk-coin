@@ -20,10 +20,14 @@ func main() {
 	http.HandleFunc("/admin/makeAdmin", makeAdmin)
 	http.HandleFunc("/admin/deleteUser", deleteUser)
 	http.HandleFunc("/admin/deleteAdmin", deleteAdmin)
+	http.HandleFunc("/admin/storeList", Store)
+	http.HandleFunc("/admin/redeemReq", fetchRedeem)
+	http.HandleFunc("/admin/approval", Approve)
 	http.HandleFunc("/admin/freeze", Freeze)
 	http.HandleFunc("/history", History)
 	http.HandleFunc("/admin/history", adminHistory)
 	http.HandleFunc("/database", fetchDatabase)
+	http.HandleFunc("/store", fetchStore)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
